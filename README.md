@@ -21,7 +21,7 @@ this extension can be easily installed using the weewx extensions installer.
 
 2. install using the weewx extension utility
 	```
-	wee_extension --install v1.0.0.tar.gz
+	wee_extension --install v1.1.0.tar.gz
 	```
 
 3. update **weewx.conf** to appropriately tag weather data for submission into the prometheus pushgateway and subsequent scraping from prometheus.  note that **job** and **instance** names may be subject to relabeling depending on your prometheus environment.
@@ -45,6 +45,6 @@ sudo /etc/init.d/weewx start
 ```
 
 ## administravia
-**author:** steve ulrich \<[sulrich@botwerks.org](mailto:sulrich@botwerks.org)\>  
+**author:** Tom Mitchell \<[tom@tom.org](mailto:tom@tom.org)\>
 **license:** Apache License, Version 2.0. See LICENSE.  
-**source:** [https://github.com/sulrich/weewx-prompush](https://github.com/sulrich/weewx-prompush)  
+**source:** [https://github.com/tomdotorg/weewx-prometheus](https://github.com/tomdotorg/weewx-prometheus)  

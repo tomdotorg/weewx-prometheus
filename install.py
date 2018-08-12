@@ -6,10 +6,11 @@ setup for weewx prometheus pushgateway pusher
 """
 
 __title__ = 'PromPush'
-__version__ = '1.0.0'
-__author__ = 'steve ulrich <sulrich@botwerks.org>'
+__version__ = '1.1.0'
+__author__ = 'Tom Mitchell <tom@tom.org>'
 __license__ = 'Apache License, Version 2.0'
 
+ """ props to steve ulrich for the original version of this!!"""
 
 import setup
 
@@ -26,8 +27,8 @@ class WeewxPromPushInstaller(setup.ExtensionInstaller):
             version=__version__,
             name=__title__,
             description='post weather data to prometheus pushgateway.',
-            author='steve ulrich',
-            author_email='sulrich@botwerks.org',
+            author='Tom Mitchell',
+            author_email='tom@tom.org',
             restful_services='user.prompush.PromPush',
             config={
                 'StdRESTful': {
