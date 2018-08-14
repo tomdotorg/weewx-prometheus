@@ -210,7 +210,7 @@ class PromPushThread(weewx.restx.RESTThread):
     DEFAULT_HOST = 'localhost'
     DEFAULT_PORT = '9091'
     DEFAULT_JOB = 'weewx'
-    DEFAULT_INSTANCE = ''
+    DEFAULT_INSTANCE = 'weewx-instance'
     DEFAULT_TIMEOUT = 10
     DEFAULT_MAX_TRIES = 3
     DEFAULT_RETRY_WAIT = 5
