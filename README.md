@@ -16,7 +16,7 @@ this extension can be easily installed using the weewx extensions installer.
 
 1. download the extension from github:
 	```
-	wget https://github.com/sulrich/weewx-prompush/archive/v1.0.0.tar.gz
+	wget https://github.com/sulrich/weewx-prompush/archive/v1.1.0.tar.gz
 	```
 
 2. install using the weewx extension utility
