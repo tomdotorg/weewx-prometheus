@@ -114,6 +114,12 @@ weather_metrics = {
         {'name':    'weewx_loop_sunrise_epoch_seconds',           'type': 'gauge'},
     'sunset':
         {'name':    'weewx_loop_sunset_epoch_seconds',            'type': 'gauge'},
+    'extraTemp1':
+        {'name':    'weewx_loop_extra_temp_1',                   'type': 'gauge'},
+    'extraTemp2':
+        {'name':    'weewx_loop_extra_temp_2',                   'type': 'gauge'},
+    'extraTemp3':
+        {'name':    'weewx_loop_extra_temp_3',                   'type': 'gauge'},
     'extraAlarm1':
         {'name':    'weewx_loop_extra_alarm_1',                   'type': 'gauge'},
     'extraAlarm2':
@@ -293,7 +299,7 @@ class PromPushThread(weewx.restx.RESTThread):
                     record_data += "# TYPE %s %s\n" % (str(weather_metrics[key]['name']), str(weather_metrics[key]['type']))
                     record_data += "%s %s\n" % (str(weather_metrics[key]['name']), str(val))
                 else:
-                    logerr("missing field [%s] in defs" % (key))
+                    loginfo("missing field [%s] in defs" % (key))
 
         self.post_metrics(record_data)
 
