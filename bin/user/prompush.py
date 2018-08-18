@@ -299,7 +299,8 @@ class PromPushThread(weewx.restx.RESTThread):
                     record_data += "# TYPE %s %s\n" % (str(weather_metrics[key]['name']), str(weather_metrics[key]['type']))
                     record_data += "%s %s\n" % (str(weather_metrics[key]['name']), str(val))
                 else:
-                    loginfo("missing field [%s] in defs" % (key))
+                    if key != 'type':
+                        loginfo("missing field [%s] in defs" % (key))
 
         self.post_metrics(record_data)
 
