@@ -25,6 +25,7 @@ this extension can be easily installed using the weewx extensions installer.
 	```
 
 3. update **weewx.conf** to appropriately tag weather data for submission into the prometheus pushgateway and subsequent scraping from prometheus.  note that **job** and **instance** names may be subject to relabeling depending on your prometheus environment.
+   The path is in there if you're pushing to something that speaks prometheus, but needs a different path, like [VictoriaMetrics](https://docs.victoriametrics.com/#how-to-import-data-in-prometheus-exposition-format)
 	```
     [StdRESTful]
       [[PromPush]]
@@ -32,6 +33,8 @@ this extension can be easily installed using the weewx extensions installer.
          instance = PROMETHEUS_INSTANCE_NAME
          host = PUSH_GW_HOST
          port = PUSH_GW_PORT
+         # Optional path for things like VictoriaMetrics
+         path = /api/v1/import/prometheus
 	```
 	
 `wee_extension` will add a boilerplate `[[PromPush]]` section to your config.  You need to edit it.

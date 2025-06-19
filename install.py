@@ -10,7 +10,7 @@ __version__ = '1.1.0'
 __author__ = 'Tom Mitchell <tom@tom.org>'
 __license__ = 'Apache License, Version 2.0'
 
- """ props to steve ulrich for the original version of this!!"""
+""" props to steve ulrich for the original version of this!!"""
 
 import setup
 
