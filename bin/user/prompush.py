@@ -172,7 +172,7 @@ import weeutil.weeutil
 
 import requests
 
-import Queue
+import queue
 import sys
 import syslog
 
@@ -196,7 +196,7 @@ class PromPush(weewx.restx.StdRESTful):
         _manager_dict = weewx.manager.get_manager_dict(
             config_dict['DataBindings'], config_dict['Databases'], 'wx_binding')
 
-        self.loop_queue = Queue.Queue()
+        self.loop_queue = queue.Queue()
         self.loop_thread = PromPushThread(self.loop_queue, _manager_dict,
                                           **_prom_dict)
         self.loop_thread.start()
