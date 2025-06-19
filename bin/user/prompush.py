@@ -201,8 +201,8 @@ class PromPush(weewx.restx.StdRESTful):
                                           **_prom_dict)
         self.loop_thread.start()
         self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
-        loginfo("data will be sent to pushgateway at %s:%s" %
-                (_prom_dict['host'], _prom_dict['port']))
+        loginfo("data will be sent to pushgateway at %s:%s prefixing path '%s'" %
+                (_prom_dict['host'], _prom_dict['port'], _prom_dict['path']))
 
     def new_loop_packet(self, event):
         self.loop_queue.put(event.packet)
@@ -215,6 +215,7 @@ class PromPushThread(weewx.restx.RESTThread):
 
     DEFAULT_HOST = 'localhost'
     DEFAULT_PORT = '9091'
+    DEFAULT_PATH = ''
     DEFAULT_JOB = 'weewx'
     DEFAULT_INSTANCE = 'weewx-instance'
     DEFAULT_TIMEOUT = 10
@@ -224,6 +225,7 @@ class PromPushThread(weewx.restx.RESTThread):
     def __init__(self, queue, manager_dict,
                  host=DEFAULT_HOST,
                  port=DEFAULT_PORT,
+                 path=DEFAULT_PATH,
                  job=DEFAULT_JOB,
                  instance=DEFAULT_INSTANCE,
                  skip_post=False,
@@ -257,7 +259,7 @@ class PromPushThread(weewx.restx.RESTThread):
 
     def post_metrics(self, data):
         # post the weather stats to the prometheus push gw
-        pushgw_url = 'http://' + self.host + ":" + self.port + "/metrics/job/" + self.job
+        pushgw_url = 'http://' + self.host + ":" + self.port + self.path + "/metrics/job/" + self.job
 
         if self.instance is not "":
             pushgw_url += "/instance/" + self.instance
