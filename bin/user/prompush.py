@@ -56,26 +56,28 @@ weather_metrics = {
         {'name':    'weewx_loop_windchill_degrees_f',             'type': 'gauge'},
     'dewpoint':
         {'name':    'weewx_loop_dewpoint_degrees_f',              'type': 'gauge'},
-    # 'windrun':
+    'windrun':
+        {'name':    'weewx_loop_windrun_miles',                   'type': 'gauge'},
     'humidex':
         {'name':    'weewx_loop_humidex_degrees_f',               'type': 'gauge'},
     'pressure':
         {'name':    'weewx_loop_pressure_in',                     'type': 'gauge'},
-    # ET':
+    'ET':
+        {'name':    'weewx_loop_et_in',                           'type': 'gauge'},
     'rainRate':
         {'name':    'weewx_loop_rain_rate_in_per_hour',           'type': 'gauge'},
-    # 'usUnits':
     'appTemp':
         {'name':    'weewx_loop_apparent_temp_degrees_f',         'type': 'gauge'},
     'UV':
         {'name':    'weewx_loop_uv_index',                        'type': 'gauge'},
-    # dateTime
     'windDir':
         {'name':    'weewx_loop_wind_speed_direction_degrees',    'type': 'gauge'},
     'outTemp':
         {'name':    'weewx_loop_outside_temp_degrees_f',          'type': 'gauge'},
     'windSpeed':
         {'name':    'weewx_loop_wind_speed_mph',                  'type': 'gauge'},
+    'beaufort':
+        {'name':    'weewx_loop_beaufort_scale',                  'type': 'gauge'},
     'windSpeed10':
         {'name':    'weewx_loop_10_min_wind_speed_mph',           'type': 'gauge'},
     'inHumidity':
@@ -172,7 +174,7 @@ import weeutil.weeutil
 
 import requests
 
-import Queue
+import queue
 import sys
 import syslog
 
@@ -190,19 +192,19 @@ class PromPush(weewx.restx.StdRESTful):
             _prom_dict = weeutil.weeutil.accumulateLeaves(
                 config_dict['StdRESTful']['PromPush'], max_level=1)
         except KeyError as e:
-            logerr("config error: missing parameter %s" % e)
+            logerr(f"config error: missing parameter {e}")
             return
 
         _manager_dict = weewx.manager.get_manager_dict(
             config_dict['DataBindings'], config_dict['Databases'], 'wx_binding')
 
-        self.loop_queue = Queue.Queue()
+        self.loop_queue = queue.Queue()
         self.loop_thread = PromPushThread(self.loop_queue, _manager_dict,
                                           **_prom_dict)
         self.loop_thread.start()
         self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
-        loginfo("data will be sent to pushgateway at %s:%s" %
-                (_prom_dict['host'], _prom_dict['port']))
+        loginfo(
+            f"data will be sent to pushgateway at {_prom_dict['host']}:{_prom_dict['port']} prefixing path '{_prom_dict['path']}'")
 
     def new_loop_packet(self, event):
         self.loop_queue.put(event.packet)
@@ -215,6 +217,7 @@ class PromPushThread(weewx.restx.RESTThread):
 
     DEFAULT_HOST = 'localhost'
     DEFAULT_PORT = '9091'
+    DEFAULT_PATH = ''
     DEFAULT_JOB = 'weewx'
     DEFAULT_INSTANCE = 'weewx-instance'
     DEFAULT_TIMEOUT = 10
@@ -224,10 +227,11 @@ class PromPushThread(weewx.restx.RESTThread):
     def __init__(self, queue, manager_dict,
                  host=DEFAULT_HOST,
                  port=DEFAULT_PORT,
+                 path=DEFAULT_PATH,
                  job=DEFAULT_JOB,
                  instance=DEFAULT_INSTANCE,
                  skip_post=False,
-                 max_backlog=sys.maxint,
+                 max_backlog=sys.maxsize,
                  stale=60,
                  log_success=True,
                  log_failure=True,
@@ -251,15 +255,16 @@ class PromPushThread(weewx.restx.RESTThread):
 
         self.host = host
         self.port = port
+        self.path = path
         self.job = job
         self.instance = instance
         self.skip_post = weeutil.weeutil.to_bool(skip_post)
 
     def post_metrics(self, data):
         # post the weather stats to the prometheus push gw
-        pushgw_url = 'http://' + self.host + ":" + self.port + "/metrics/job/" + self.job
+        pushgw_url = 'http://' + self.host + ":" + self.port + self.path + "/metrics/job/" + self.job
 
-        if self.instance is not "":
+        if self.instance != "":
             pushgw_url += "/instance/" + self.instance
 
         try:
@@ -272,12 +277,11 @@ class PromPushThread(weewx.restx.RESTThread):
                 return
             else:
                 # something went awry
-                logerr("pushgw post error: %s" % _res.text)
+                logerr(f"pushgw post error: {_res.text}")
                 return
-
-        except requests.ConnectionError, e:
-            logerr("pushgw post error: %s" % e.message)
-
+        # this needed a fix, for latest python 3 I assume
+        except requests.ConnectionError as e:
+            logerr(f"pushgw post error: {str(e)}")
 
     def process_record(self, record, dbm):
         _ = dbm
@@ -287,7 +291,7 @@ class PromPushThread(weewx.restx.RESTThread):
         if self.skip_post:
             loginfo("-- prompush: skipping post")
         else:
-            for key, val in record.iteritems():
+            for key, val in record.items():
                 if val is None:
                     val = 0.0
 
@@ -296,11 +300,11 @@ class PromPushThread(weewx.restx.RESTThread):
                     # if there's no metric type supplied the pushgw will
                     # annotate with 'untyped'
 #                    record_data += "# TYPE %s %s\n" % (str(weather_metrics[key]['name']), str(weather_metrics[key]['type']))
-                    record_data += "# TYPE %s %s\n" % (str(weather_metrics[key]['name']), str(weather_metrics[key]['type']))
-                    record_data += "%s %s\n" % (str(weather_metrics[key]['name']), str(val))
+                    record_data += f"# TYPE {weather_metrics[key]['name']} {weather_metrics[key]['type']}\n"
+                    record_data += f"{weather_metrics[key]['name']} {val}\n"
                 else:
                     if key != 'type':
-                        loginfo("missing field [%s] in defs" % (key))
+                        loginfo(f"missing field [{key}] in defs")
 
         self.post_metrics(record_data)
 
@@ -308,7 +312,7 @@ class PromPushThread(weewx.restx.RESTThread):
 #---------------------------------------------------------------------
 # misc. logging functions
 def logmsg(level, msg):
-    syslog.syslog(level, 'prom-push: %s' % msg)
+    syslog.syslog(level, f'prom-push: {msg}')
 
 def logdbg(msg):
     logmsg(syslog.LOG_DEBUG, msg)
